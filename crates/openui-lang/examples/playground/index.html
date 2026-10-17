@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>openui-rs playground</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #fff; --line: #dfe3e8; --text: #1d2430; --muted: #687385;
+    --accent: #2f6fdf; --accent-soft: #e8f0fd; --ok: #1f8a4c; --ok-soft: #e4f5ea;
+    --warn: #a86400; --warn-soft: #fdf1dc; --err: #c73636; --err-soft: #fbe6e6;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  body { margin: 0; font: 14px/1.45 system-ui, -apple-system, Segoe UI, sans-serif; color: var(--text); background: var(--bg); }
+  header { padding: 12px 20px; border-bottom: 1px solid var(--line); background: var(--panel); display: flex; gap: 16px; align-items: baseline; flex-wrap: wrap; }
+  header h1 { font-size: 17px; margin: 0; }
+  header p { margin: 0; color: var(--muted); }
+  main { display: grid; grid-template-columns: minmax(360px, 5fr) 7fr; gap: 16px; padding: 16px 20px; align-items: start; }
+  @media (max-width: 960px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; min-width: 0; }
+  label { color: var(--muted); }
+  select, input[type=number], button, textarea { font: inherit; }
+  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  #picker { flex: 1; min-width: 0; padding: 5px 6px; }
+  #about { color: var(--muted); margin: 8px 0 10px; min-height: 1.4em; }
+  #editor { width: 100%; height: 340px; resize: vertical; font: 13px/1.5 var(--mono); padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: #fbfcfd; color: var(--text); tab-size: 2; white-space: pre-wrap; overflow-wrap: anywhere; }
+  #editor:focus { outline: 2px solid var(--accent-soft); border-color: var(--accent); }
+  .box { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+  details > summary { cursor: pointer; font-weight: 600; }
+  details[open] > summary { margin-bottom: 6px; }
+  input[type=number] { width: 7em; padding: 3px 5px; }
+  #frame { flex: 1; min-width: 120px; }
+  #frame-label { color: var(--muted); font-size: 13px; min-width: 15em; }
+  .limits { display: grid; grid-template-columns: auto auto; gap: 6px 10px; align-items: center; justify-content: start; }
+  .lib dt { font: 12.5px var(--mono); margin-top: 6px; }
+  .lib dd { margin: 0 0 0 12px; color: var(--muted); font-size: 13px; }
+  .note { color: var(--muted); font-size: 13px; margin: 6px 0; }
+  button { cursor: pointer; padding: 4px 10px; border: 1px solid var(--line); background: var(--panel); border-radius: 6px; color: var(--text); }
+  button:hover:not(:disabled) { border-color: var(--accent); }
+  button:disabled { cursor: not-allowed; opacity: .55; }
+  #status { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12.5px; background: #eef0f3; color: var(--text); white-space: nowrap; }
+  .chip.ok { background: var(--ok-soft); color: var(--ok); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.err { background: var(--err-soft); color: var(--err); }
+  .chip.info { background: var(--accent-soft); color: var(--accent); }
+  nav { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin: 0 -14px 12px; padding: 0 10px; flex-wrap: wrap; }
+  nav button { border: none; border-bottom: 2px solid transparent; border-radius: 0; padding: 7px 10px; background: none; color: var(--muted); }
+  nav button.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+  nav .badge { margin-left: 4px; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  pre, code { font-family: var(--mono); font-size: 12.5px; }
+  pre { background: #fbfcfd; border: 1px solid var(--line); border-radius: 6px; padding: 10px; overflow: auto; max-height: 480px; margin: 6px 0; white-space: pre-wrap; word-break: break-word; }
+  table.data { border-collapse: collapse; width: 100%; font-size: 13px; margin: 6px 0 12px; }
+  table.data th, table.data td { text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  table.data th { color: var(--muted); font-weight: 600; }
+  table.data tr.clickable { cursor: pointer; }
+  table.data tr.clickable:hover { background: var(--accent-soft); }
+  h4 { margin: 14px 0 4px; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  h4:first-child { margin-top: 0; }
+  .empty { color: var(--muted); font-style: italic; }
+
+  /* The received text while streaming. */
+  #received { max-height: 150px; margin: 0 0 12px; }
+  #received .got { background: var(--accent-soft); }
+  #received .later { color: #b5bcc7; }
+
+  /* The preview: one renderer per fixture component. */
+  #preview { padding: 6px; min-height: 120px; }
+  #preview.frame { background: repeating-linear-gradient(-45deg, #fff, #fff 12px, #fafbfc 12px, #fafbfc 24px); border-radius: 6px; }
+  .oui { position: relative; }
+  .oui:hover { outline: 1px dashed #b9c7e6; outline-offset: 2px; }
+  .stack { display: flex; gap: 10px; }
+  .stack.column { flex-direction: column; }
+  :is(.stack.column, .card-body, .form) > :is(.tag, .btn, .btn-group, .metric, code, span) { align-self: flex-start; }
+  .stack.row { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .card { border: 1px solid var(--line); border-radius: 8px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .card-title { font-weight: 600; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+  .card-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .text { margin: 0; }
+  h3.text { font-size: 18px; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; background: #eceef1; }
+  .tag.green { background: var(--ok-soft); color: var(--ok); }
+  .tag.red { background: var(--err-soft); color: var(--err); }
+  .metric { border: 1px solid var(--line); border-radius: 8px; padding: 8px 14px; min-width: 110px; background: #fff; }
+  .metric-label { color: var(--muted); font-size: 12.5px; }
+  .metric-value { font-size: 22px; font-weight: 600; }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-group { display: inline-flex; gap: 4px; }
+  .form { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .form-name { font-size: 12px; color: var(--muted); }
+  .field { display: flex; flex-direction: column; gap: 3px; }
+  .field input, .field select { padding: 5px 7px; border: 1px solid var(--line); border-radius: 6px; font: inherit; max-width: 320px; }
+  .bound { font: 11.5px var(--mono); color: var(--accent); }
+  table.ui { border-collapse: collapse; }
+  table.ui th, table.ui td { border-bottom: 1px solid var(--line); padding: 4px 12px 4px 0; text-align: left; }
+  .generic { border: 1px dashed var(--line); padding: 6px; border-radius: 6px; font-size: 12.5px; }
+
+  /* The outline of the tree. */
+  .outline details { margin-left: 14px; border-left: 1px solid var(--line); padding-left: 8px; }
+  .outline > details { margin-left: 0; border-left: none; padding-left: 0; }
+  .outline summary { font-weight: normal; }
+  .outline .type { font-weight: 600; }
+  .outline .stmt { color: var(--muted); font-size: 12px; margin-left: 6px; }
+  .outline .prop { margin: 2px 0 2px 14px; font-size: 13px; }
+  .outline .name { color: var(--muted); }
+
+  .events li { margin: 0 0 8px; }
+  .events { padding-left: 0; list-style: none; margin: 6px 0; }
+  .host-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+  .host-grid textarea { width: 100%; height: 120px; font: 12.5px var(--mono); padding: 6px; border: 1px solid var(--line); border-radius: 6px; }
+  .error-text { color: var(--err); font-size: 13px; }
+  .diff { color: var(--err); }
+  .split { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 700px) { .split { grid-template-columns: 1fr; } }
+
+  #toast { position: fixed; right: 20px; bottom: 20px; background: #1d2430; color: #fff; padding: 9px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 420px; }
+  #toast.show { opacity: .95; }
+</style>
+</head>
+<body>
+<header>
+  <h1>openui-rs playground</h1>
+  <p>OpenUI Lang 1.0, milestone 1. The Rust crate parses, streams, checks and evaluates everything on this page. No model, tool or network is called.</p>
+</header>
+<main>
+  <section id="left">
+    <div class="row">
+      <label for="picker">Program</label>
+      <select id="picker"></select>
+    </div>
+    <p id="about"></p>
+    <textarea id="editor" spellcheck="false" autocomplete="off" aria-label="OpenUI Lang program"></textarea>
+
+    <div class="box">
+      <div class="row">
+        <label><input type="checkbox" id="stream"> Stream it in chunks of</label>
+        <input type="number" id="chunk-size" min="1" value="9" aria-label="Chunk size in characters">
+        <label for="chunk-size">characters</label>
+        <label id="fixture-chunks-label" hidden><input type="checkbox" id="fixture-chunks" checked> use the fixture's chunks</label>
+      </div>
+      <div class="row" id="frame-row" hidden style="margin-top: 8px">
+        <button id="play">▶ Play</button>
+        <input type="range" id="frame" min="0" value="0" aria-label="Frame">
+        <span id="frame-label"></span>
+      </div>
+    </div>
+
+    <details class="box">
+      <summary>Limits</summary>
+      <p class="note">Bounds on the work untrusted model output can cause. Work past a bound is dropped and reported as <code>limit-exceeded</code>; the rest renders. Depth cannot go above the default here.</p>
+      <div class="limits" id="limits"></div>
+      <button id="limits-reset" style="margin-top: 8px">Defaults</button>
+    </details>
+
+    <details class="box lib">
+      <summary>Library</summary>
+      <p class="note">The component library of the conformance fixtures (<code>library.json</code>). The root component is <code id="lib-root"></code>.</p>
+      <div id="library"></div>
+      <h4>In the language itself</h4>
+      <p class="note"><code>@Count @First @Last @Sum @Avg @Min @Max @Sort @Filter @Round @Abs @Floor @Ceil @Each</code>, the actions <code>Action([...]) @Set @Reset @Run @ToAssistant @OpenUrl</code>, and the statements <code>Query(tool, args, defaults, refresh?)</code> and <code>Mutation(tool, args)</code>.</p>
+    </details>
+  </section>
+
+  <section id="right">
+    <div id="status"></div>
+    <nav id="tabs"></nav>
+    <div class="panel" data-panel="preview">
+      <pre id="received" hidden></pre>
+      <div id="preview"></div>
+    </div>
+    <div class="panel" data-panel="tree"></div>
+    <div class="panel" data-panel="diagnostics"></div>
+    <div class="panel" data-panel="program"></div>
+    <div class="panel" data-panel="host">
+      <p class="note">You are the host. The crate never acts: it hands you the state names, the query requests and the action plans, and you supply state values and tool results. Typing in a bound input or clicking a button here edits these.</p>
+      <div class="host-grid">
+        <label>State the host holds<textarea id="host-state" spellcheck="false"></textarea></label>
+        <label>Query results<textarea id="host-queries" spellcheck="false"></textarea></label>
+        <label>Mutation results<textarea id="host-mutations" spellcheck="false"></textarea></label>
+      </div>
+      <div class="row" style="margin-top: 6px">
+        <button id="host-apply">Apply</button>
+        <button id="host-reset">Reset the host</button>
+        <span id="host-error" class="error-text"></span>
+      </div>
+      <div id="host-defaults"></div>
+      <h4>Event log <button id="events-clear" style="margin-left: 8px; font-size: 12px; padding: 1px 8px">Clear</button></h4>
+      <ul class="events" id="events"></ul>
+    </div>
+    <div class="panel" data-panel="fixture"></div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+
+const TABS = [
+  ["preview", "Preview"], ["tree", "Tree"], ["diagnostics", "Diagnostics"],
+  ["program", "Program"], ["host", "Host"], ["fixture", "Fixture"],
+];
+// Cases this milestone does not implement (see docs/compatibility.md).
+const DEFERRED = {
+  "editing/": "Incremental editing is not implemented, so this case is expected to differ: the crate parses input.oui alone and never merges patch.oui.",
+  "state/005-validation-rules": "Validation rules are not implemented, so this case is expected to differ.",
+};
+const LIMIT_NAMES = ["max_depth", "max_nodes", "max_steps", "max_string_bytes"];
+
+let setup = null;
+let current = null;            // { kind: "example" | "fixture", item }
+let host = { state: {}, queries: {}, mutations: {} };
+let result = null;             // the last /api/run response
+let view = 0;                  // which frame is shown; the last one is the final document
+let tab = "preview";
+let events = [];
+let sequence = 0;
+let timer = null;
+let player = null;
+
+// ---------- helpers ----------
+
+function h(tag, attrs, ...kids) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs || {})) {
+    if (value == null || value === false) continue;
+    if (key.startsWith("on")) node.addEventListener(key.slice(2), value);
+    else if (key === "class") node.className = value;
+    else node.setAttribute(key, value === true ? "" : value);
+  }
+  for (const kid of kids.flat(Infinity)) {
+    if (kid == null || kid === false) continue;
+    node.append(kid instanceof Node ? kid : String(kid));
+  }
+  return node;
+}
+/** Replaces the children of `node`, skipping nulls and flattening arrays. */
+function fill(node, ...kids) {
+  node.replaceChildren(...kids.flat(Infinity).filter((kid) => kid != null && kid !== false).map((kid) => (kid instanceof Node ? kid : String(kid))));
+}
+const json = (value) => JSON.stringify(value, null, 2);
+const short = (value) => JSON.stringify(value);
+const isElement = (v) => v && typeof v === "object" && !Array.isArray(v) && "$type" in v;
+const isAction = (v) => v && typeof v === "object" && !Array.isArray(v) && "$action" in v;
+const propsOf = (el) => Object.fromEntries(el.props.map((p) => [p.name, p]));
+const text = (v) => (v == null ? "" : typeof v === "object" ? short(v) : String(v));
+
+function toast(message) {
+  const node = $("toast");
+  node.textContent = message;
+  node.classList.add("show");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => node.classList.remove("show"), 2600);
+}
+
+async function post(path, body) {
+  const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || response.statusText);
+  return data;
+}
+
+function limits() {
+  const out = {};
+  for (const name of LIMIT_NAMES) {
+    const n = Number($("limit-" + name).value);
+    if (Number.isFinite(n) && n > 0) out[name] = n;
+  }
+  return out;
+}
+
+function fixtureChunks() {
+  return current?.kind === "fixture" && current.item.chunks && $("editor").value === current.item.text
+    ? current.item.chunks : null;
+}
+
+// ---------- running ----------
+
+function schedule(delay = 200) {
+  clearTimeout(timer);
+  timer = setTimeout(run, delay);
+}
+
+async function run() {
+  clearTimeout(timer);
+  const mine = ++sequence;
+  const body = { text: $("editor").value, state: host.state, queries: host.queries, mutations: host.mutations, limits: limits() };
+  if ($("stream").checked) {
+    const chunks = $("fixture-chunks").checked ? fixtureChunks() : null;
+    if (chunks) body.chunks = chunks;
+    else body.chunkSize = Math.max(1, Number($("chunk-size").value) || 1);
+  }
+  if (current?.kind === "fixture" && current.item.expected) body.expected = current.item.expected;
+  const started = performance.now();
+  let response;
+  try {
+    response = await post("api/run", body);
+  } catch (error) {
+    if (mine === sequence) fill($("status"), h("span", { class: "chip err" }, "request failed: " + error.message));
+    return;
+  }
+  if (mine !== sequence) return;
+  const atEnd = !result || view >= views().length - 1;
+  result = response;
+  result.ms = performance.now() - started;
+  const count = views().length;
+  view = atEnd ? count - 1 : Math.min(view, count - 1);
+  render();
+}
+
+/** The documents to show: one per frame while streaming, then the final one. */
+function views() {
+  if (!result) return [];
+  const total = Array.from($("editor").value).length;
+  const frames = result.frames.map((f) => ({
+    label: `chunk ${f.chunk} of ${result.chunks}: push()`, received: f.received, report: f.report, live: false,
+  }));
+  frames.push({ label: frames.length ? "end of stream: finish()" : "", received: total, report: result.final, live: true });
+  return frames;
+}
+
+// ---------- rendering ----------
+
+function render() {
+  const all = views();
+  const shown = all[view];
+  const report = shown.report;
+  renderStatus(report, shown);
+  renderTabs(report);
+  renderFrames(all, shown);
+  renderPreview(report, shown);
+  renderTree(report, shown);
+  renderDiagnostics(report);
+  renderProgram(report);
+  renderHost(report);
+  renderFixture();
+}
+
+function renderStatus(report, shown) {
+  const errors = report.diagnostics.filter((d) => d.severity === "error").length;
+  const warnings = report.diagnostics.length - errors;
+  const chips = [
+    report.complete ? h("span", { class: "chip ok" }, "complete") : h("span", { class: "chip info" }, "stream open"),
+    report.incomplete ? h("span", { class: "chip warn", title: "The tail had to be closed" }, "incomplete") : null,
+    report.entry
+      ? h("span", { class: "chip" }, "entry ", h("b", {}, report.entry.statement), report.entry.fallback ? " (fallback)" : "")
+      : h("span", { class: "chip err" }, "no entry"),
+    h("span", { class: "chip" }, `${report.statements.length} statements`),
+    h("span", { class: "chip " + (errors ? "err" : "ok") }, `${errors} errors`),
+    warnings ? h("span", { class: "chip warn" }, `${warnings} warnings`) : null,
+    report.unresolved.length ? h("span", { class: "chip warn" }, `${report.unresolved.length} unresolved`) : null,
+    report.queries.length ? h("span", { class: "chip info" }, `${report.queries.length} query requests`) : null,
+    h("span", { class: "chip", title: "Round trip, including every frame" }, `${result.ms.toFixed(0)} ms`),
+  ];
+  fill($("status"), ...chips);
+}
+
+function renderTabs(report) {
+  if (tab === "fixture" && current?.kind !== "fixture") tab = "preview";
+  const nav = $("tabs");
+  fill(nav);
+  for (const [id, label] of TABS) {
+    if (id === "fixture" && current?.kind !== "fixture") continue;
+    let badge = null;
+    if (id === "diagnostics" && report.diagnostics.length) {
+      const errors = report.diagnostics.some((d) => d.severity === "error");
+      badge = h("span", { class: "chip badge " + (errors ? "err" : "warn") }, report.diagnostics.length);
+    }
+    if (id === "host" && events.length) badge = h("span", { class: "chip badge info" }, events.length);
+    if (id === "fixture" && result.fixture) {
+      const pass = result.fixture.diffs.length === 0;
+      badge = h("span", { class: "chip badge " + (pass ? "ok" : "err") }, pass ? "pass" : "differs");
+    }
+    nav.append(h("button", { class: id === tab ? "active" : null, onclick: () => { tab = id; render(); } }, label, badge));
+  }
+  for (const panel of document.querySelectorAll(".panel")) panel.classList.toggle("active", panel.dataset.panel === tab);
+}
+
+function renderFrames(all, shown) {
+  const streaming = all.length > 1;
+  $("frame-row").hidden = !streaming;
+  $("fixture-chunks-label").hidden = !(current?.kind === "fixture" && current.item.chunks);
+  if (!streaming) return;
+  const slider = $("frame");
+  slider.max = all.length - 1;
+  slider.value = view;
+  const total = Array.from($("editor").value).length;
+  $("frame-label").textContent = `${shown.label} · ${shown.received} of ${total} characters`;
+}
+
+function renderPreview(report, shown) {
+  const received = $("received");
+  if (views().length > 1) {
+    const chars = Array.from($("editor").value);
+    fill(received, 
+      h("span", { class: "got" }, chars.slice(0, shown.received).join("")),
+      h("span", { class: "later" }, chars.slice(shown.received).join("")),
+    );
+    received.hidden = false;
+  } else {
+    received.hidden = true;
+  }
+  const preview = $("preview");
+  const focus = document.activeElement?.dataset?.key && preview.contains(document.activeElement)
+    ? { key: document.activeElement.dataset.key, start: document.activeElement.selectionStart, end: document.activeElement.selectionEnd }
+    : null;
+  preview.classList.toggle("frame", !shown.live);
+  preview.title = shown.live ? "" : "A frame while streaming. Buttons work on the final document: move the slider to the end.";
+  fill(preview, report.tree ? renderNode(report.tree, shown.live) : h("p", { class: "empty" }, "Nothing renders yet. See Diagnostics and Program."));
+  if (focus) {
+    const node = preview.querySelector(`[data-key="${CSS.escape(focus.key)}"]`);
+    if (node) {
+      node.focus();
+      if (focus.start != null && node.setSelectionRange) node.setSelectionRange(focus.start, focus.end);
+    }
+  }
+}
+
+function renderNode(value, live) {
+  if (value == null) return null;
+  if (Array.isArray(value)) return value.map((v) => renderNode(v, live));
+  if (isElement(value)) return renderElement(value, live);
+  if (isAction(value)) return h("span", { class: "chip info" }, "action");
+  if (typeof value === "object") return h("code", {}, short(value));
+  return h("span", {}, text(value));
+}
+
+function renderElement(el, live) {
+  const props = propsOf(el);
+  const val = (name) => props[name]?.value;
+  const key = `${el.$type}:${text(val("name"))}:${el.statement || ""}`;
+  let node;
+  switch (el.$type) {
+    case "Stack":
+      node = h("div", { class: "stack " + (val("direction") === "row" ? "row" : "column") }, renderNode(val("children"), live));
+      break;
+    case "Card":
+      node = h("div", { class: "card" }, h("div", { class: "card-title" }, text(val("title"))), h("div", { class: "card-body" }, renderNode(val("children"), live)));
+      break;
+    case "Text":
+      node = val("variant") === "heading" ? h("h3", { class: "text" }, text(val("text"))) : h("p", { class: "text" }, text(val("text")));
+      break;
+    case "Tag":
+      node = h("span", { class: "tag " + (val("color") || "gray") }, text(val("text")));
+      break;
+    case "Metric":
+      node = h("div", { class: "metric" }, h("div", { class: "metric-label" }, text(val("label"))), h("div", { class: "metric-value" }, text(val("value"))));
+      break;
+    case "Button": {
+      const action = val("action");
+      const share = val("share");
+      const label = text(val("label"));
+      const button = h("button", {
+        class: "btn " + (val("variant") || "secondary"),
+        disabled: !isAction(action) || !live,
+        title: isAction(action) ? action.$action.join(" → ") : "This button has no action",
+        onclick: () => act(action, label),
+      }, label);
+      node = isAction(share)
+        ? h("span", { class: "btn-group" }, button, h("button", { class: "btn", disabled: !live, title: share.$action.join(" → "), onclick: () => act(share, label + " (share)") }, "⤴"))
+        : button;
+      break;
+    }
+    case "Form":
+      node = h("form", { class: "form", onsubmit: (e) => e.preventDefault() }, h("div", { class: "form-name" }, "Form " + text(val("name"))), renderNode(val("children"), live));
+      break;
+    case "Input": {
+      const binding = props.value?.binding;
+      const rules = val("rules");
+      node = h("label", { class: "field" },
+        h("span", {}, text(val("name")), binding ? h("span", { class: "bound" }, `  ⇄ ${binding}`) : null),
+        h("input", {
+          "data-key": key, placeholder: val("placeholder"), value: text(val("value")), disabled: !live,
+          oninput: (e) => setBinding(binding, e.target.value),
+        }),
+        rules ? h("span", { class: "note" }, "rules ", h("code", {}, short(rules)), " are passed through; nothing checks them yet") : null);
+      break;
+    }
+    case "Select": {
+      const binding = props.value?.binding;
+      const items = (val("items") || []).filter((i) => isElement(i));
+      const select = h("select", { "data-key": key, disabled: !live, onchange: (e) => setBinding(binding, e.target.value) },
+        items.map((item) => { const p = propsOf(item); return h("option", { value: text(p.value?.value) }, text(p.label?.value)); }));
+      select.value = text(val("value"));
+      node = h("label", { class: "field" }, h("span", {}, text(val("name")), binding ? h("span", { class: "bound" }, `  ⇄ ${binding}`) : null), select);
+      break;
+    }
+    case "Table": {
+      const columns = (val("columns") || []).filter((c) => isElement(c)).map(propsOf);
+      const rows = Math.max(0, ...columns.map((c) => (Array.isArray(c.data?.value) ? c.data.value.length : 0)));
+      node = h("table", { class: "ui" },
+        h("thead", {}, h("tr", {}, columns.map((c) => h("th", {}, text(c.label?.value))))),
+        h("tbody", {}, Array.from({ length: rows }, (_, i) => h("tr", {}, columns.map((c) => h("td", {}, renderNode((c.data?.value || [])[i], live)))))));
+      break;
+    }
+    case "SelectItem":
+    case "Col":
+      node = h("span", { class: "chip" }, text(val("label")));
+      break;
+    default:
+      node = h("div", { class: "generic" }, h("b", {}, el.$type), " ", h("code", {}, short(Object.fromEntries(el.props.map((p) => [p.name, p.value])))));
+  }
+  node.classList.add("oui");
+  node.title = node.title || `${el.$type}${el.statement ? " · statement " + el.statement : ""}`;
+  return node;
+}
+
+function renderTree(report, shown) {
+  const panel = document.querySelector('[data-panel="tree"]');
+  const outline = h("div", { class: "outline" }, report.tree ? outlineNode(report.tree) : h("p", { class: "empty" }, "No tree."));
+  fill(panel, 
+    h("p", { class: "note" }, "The renderer-neutral tree of ", h("code", {}, "Evaluation::root()"), ": each element has a component, its props in parameter order, the statement it came from, and the ", h("code", {}, "$variable"), " a bindable prop is bound to. Actions are plans; ", h("code", {}, "@Set"), " values are evaluated when the host runs them."),
+    outline,
+    h("h4", {}, "Canonical JSON"),
+    h("p", { class: "note" }, shown.live ? "The fixture form of the final document, which the conformance harness compares." : "Shown for the final document only."),
+    h("pre", {}, json(result.canonical)));
+}
+
+function outlineNode(value, name) {
+  const label = name ? h("span", { class: "name" }, name + ": ") : null;
+  if (isElement(value)) {
+    return h("details", { open: true },
+      h("summary", {}, label, h("span", { class: "type" }, value.$type), value.statement ? h("span", { class: "stmt" }, "from " + value.statement) : null),
+      value.props.map((p) => p.binding
+        ? h("div", { class: "prop" }, h("span", { class: "name" }, p.name + ": "), h("code", {}, short(p.value)), h("span", { class: "bound" }, `  ⇄ ${p.binding}`))
+        : outlineNode(p.value, p.name)));
+  }
+  if (Array.isArray(value) && value.some((v) => isElement(v) || isAction(v))) {
+    return h("details", { open: true }, h("summary", {}, label, `[${value.length}]`), value.map((v, i) => outlineNode(v, String(i))));
+  }
+  if (isAction(value)) {
+    return h("div", { class: "prop" }, label, h("span", { class: "chip info" }, "plan"), " ", h("code", {}, value.$action.join("  →  ") || "(empty)"));
+  }
+  return h("div", { class: "prop" }, label, h("code", {}, short(value)));
+}
+
+function renderDiagnostics(report) {
+  const panel = document.querySelector('[data-panel="diagnostics"]');
+  if (!report.diagnostics.length) {
+    fill(panel, h("p", { class: "empty" }, "No diagnostics. Try the “Mistakes and recovery” example, or break something in the editor."));
+    return;
+  }
+  fill(panel, 
+    h("p", { class: "note" }, "Parse diagnostics come from ", h("code", {}, "Document::diagnostics()"), ", evaluation ones from ", h("code", {}, "Evaluation::diagnostics()"), ". The message and hint are written for the model to fix its output. Click a row to find its statement."),
+    h("table", { class: "data" },
+      h("thead", {}, h("tr", {}, ["phase", "code", "statement", "component", "path", "message"].map((c) => h("th", {}, c)))),
+      h("tbody", {}, report.diagnostics.map((d) => h("tr", { class: d.statement ? "clickable" : null, onclick: () => d.statement && findStatement(d.statement) },
+        h("td", {}, d.phase),
+        h("td", {}, h("span", { class: "chip " + (d.severity === "error" ? "err" : "warn") }, d.code), d.fatal ? h("span", { class: "chip err", style: "margin-left:4px" }, "fatal") : null),
+        h("td", {}, d.statement || ""),
+        h("td", {}, d.component || ""),
+        h("td", {}, d.path ? h("code", {}, d.path) : ""),
+        h("td", {}, d.message, d.hint ? h("div", { class: "note" }, "hint: ", d.hint) : null))))));
+}
+
+function renderProgram(report) {
+  const panel = document.querySelector('[data-panel="program"]');
+  const orphans = new Set(report.orphans);
+  const entry = report.entry
+    ? [h("b", {}, report.entry.statement), report.entry.fallback ? " — there is no root statement, so the first statement that calls the root component is used, with a no-root warning" : " — the root statement"]
+    : ["none, so nothing renders"];
+  fill(panel, 
+    h("h4", {}, "Entry"), h("p", {}, ...entry),
+    h("h4", {}, "Stream"),
+    h("p", {}, report.complete ? "Complete: the stream has ended, so query requests are issued." : "Open: more text may arrive, so the tail is closed provisionally and no query runs yet.",
+      report.incomplete ? " The text was cut mid-statement (incomplete)." : ""),
+    h("h4", {}, "Statements"),
+    h("table", { class: "data" },
+      h("thead", {}, h("tr", {}, h("th", {}, "name"), h("th", {}, "kind"), h("th", {}, ""))),
+      h("tbody", {}, report.statements.map((s) => h("tr", { class: "clickable", onclick: () => findStatement(s.name) },
+        h("td", {}, h("code", {}, s.name)), h("td", {}, s.kind),
+        h("td", {}, orphans.has(s.name) ? h("span", { class: "chip warn", title: "Defined but not reachable from the entry" }, "orphan") : null))))),
+    h("h4", {}, "Unresolved references"),
+    report.unresolved.length ? h("p", {}, report.unresolved.map((n) => h("code", { style: "margin-right:8px" }, n))) : h("p", { class: "empty" }, "None. A reference to a name that is not defined (yet) reads as absent."),
+    h("h4", {}, "Query requests"),
+    report.queries.length
+      ? h("table", { class: "data" },
+          h("thead", {}, h("tr", {}, ["statement", "tool", "args", "refresh"].map((c) => h("th", {}, c)))),
+          h("tbody", {}, report.queries.map((q) => h("tr", {}, h("td", {}, q.statement), h("td", {}, q.tool), h("td", {}, h("code", {}, short(q.args))), h("td", {}, q.refreshSeconds == null ? "" : q.refreshSeconds + " s")))))
+      : h("p", { class: "empty" }, report.complete ? "None." : "None while the stream is open."));
+}
+
+function renderHost(report) {
+  for (const [id, value] of [["host-state", host.state], ["host-queries", host.queries], ["host-mutations", host.mutations]]) {
+    const area = $(id);
+    if (document.activeElement !== area) area.value = json(value);
+  }
+  const defaults = Object.entries(report.stateDefaults);
+  fill($("host-defaults"), 
+    h("h4", {}, "State variables"),
+    defaults.length
+      ? h("table", { class: "data" },
+          h("thead", {}, h("tr", {}, ["name", "declared default", "host value"].map((c) => h("th", {}, c)))),
+          h("tbody", {}, defaults.map(([name, value]) => h("tr", {}, h("td", {}, h("code", {}, name)), h("td", {}, h("code", {}, short(value))),
+            h("td", {}, name in host.state ? h("code", {}, short(host.state[name])) : h("span", { class: "empty" }, "unset, so the default is used"))))))
+      : h("p", { class: "empty" }, "The program declares no $variables."));
+  fill($("events"), ...(events.length
+    ? events.map((e) => h("li", {}, h("span", { class: "chip " + (e.kind === "Host" ? "warn" : "info") }, e.kind), " ", e.source ? h("span", { class: "note" }, e.source + ": ") : null, e.text,
+        e.detail ? h("div", {}, h("code", { class: "note" }, short(e.detail))) : null))
+    : [h("li", { class: "empty" }, "No events yet. Click a button in Preview.")]));
+}
+
+function renderFixture() {
+  const panel = document.querySelector('[data-panel="fixture"]');
+  if (current?.kind !== "fixture") return fill(panel);
+  const item = current.item;
+  const deferred = Object.entries(DEFERRED).find(([prefix]) => item.id.startsWith(prefix));
+  const edited = $("editor").value !== item.text;
+  const diffs = result.fixture?.diffs || [];
+  fill(panel, 
+    h("p", {}, h("b", {}, item.id), " ", diffs.length ? h("span", { class: "chip err" }, `${diffs.length} differences`) : h("span", { class: "chip ok" }, "matches expected.json")),
+    deferred ? h("p", { class: "note" }, deferred[1]) : null,
+    edited ? h("p", { class: "note" }, "You edited the text, so it may no longer match. Pick the case again to restore it.") : null,
+    diffs.length ? h("ul", {}, diffs.map((d) => h("li", { class: "diff" }, h("code", {}, d)))) : null,
+    h("div", { class: "split" },
+      h("div", {}, h("h4", {}, "expected.json"), h("pre", {}, json(item.expected))),
+      h("div", {}, h("h4", {}, "Actual, canonical"), h("pre", {}, json(result.canonical)))),
+    item.chunks ? [h("h4", {}, "chunks.json"), h("pre", {}, json(item.chunks))] : null,
+    item.interactions ? [
+      h("h4", {}, "interactions.json (level 2)"),
+      h("p", { class: "note" }, "The crate does not run these checks yet; they need a host that runs actions. You can replay them by hand in Preview and compare with Host."),
+      h("pre", {}, item.interactions)] : null);
+}
+
+// ---------- the host ----------
+
+function setBinding(binding, value) {
+  if (!binding) return;
+  host.state[binding] = value;
+  schedule(120);
+}
+
+async function act(action, source) {
+  if (!isAction(action)) return;
+  let response;
+  try {
+    response = await post("api/act", { text: $("editor").value, path: action.$path, state: host.state, queries: host.queries, mutations: host.mutations, limits: limits() });
+  } catch (error) {
+    toast("The action failed: " + error.message);
+    return;
+  }
+  host.state = response.state;
+  const click = (act.clicks = (act.clicks || 0) + 1);
+  source = `${source} (click ${click})`;
+  const added = [];
+  for (const event of response.events) {
+    added.push({ ...event, source });
+    if (event.kind === "Run" && event.detail?.runKind === "Mutation") {
+      host.mutations[event.detail.statement] = { status: "success", data: event.detail.args, error: null };
+      added.push({ kind: "Host", source: "playground", text: `pretends tool ${event.detail.tool} succeeded, so ${event.detail.statement} now reads status "success" with the args as data`, detail: null });
+    }
+  }
+  events = events.concat(added).slice(-200);
+  toast(`${source}: ${response.events.map((e) => e.kind).join(", ")}. See Host for details.`);
+  await run();
+}
+
+function applyHost() {
+  try {
+    const parse = (id) => {
+      const value = JSON.parse($(id).value || "{}");
+      if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(`${id.replace("host-", "")} must be a JSON object`);
+      return value;
+    };
+    host = { state: parse("host-state"), queries: parse("host-queries"), mutations: parse("host-mutations") };
+    $("host-error").textContent = "";
+    run();
+  } catch (error) {
+    $("host-error").textContent = error.message;
+  }
+}
+
+function resetHost() {
+  host = { state: {}, queries: structuredClone(current?.item.queries || {}), mutations: {} };
+  $("host-error").textContent = "";
+}
+
+// ---------- the editor ----------
+
+function findStatement(name) {
+  const editor = $("editor");
+  const escaped = name.replace(/[$.*+?^{}()|[\]\\]/g, "\\$&");
+  const match = new RegExp(`^${escaped}\\s*=.*$`, "m").exec(editor.value);
+  if (!match) return;
+  editor.focus();
+  editor.setSelectionRange(match.index, match.index + match[0].length);
+  const line = editor.value.slice(0, match.index).split("\n").length - 1;
+  editor.scrollTop = Math.max(0, line * 19.5 - 40);
+}
+
+function load(value) {
+  const [kind, id] = [value.slice(0, 2), value.slice(3)];
+  const item = kind === "ex" ? setup.examples.find((e) => e.id === id) : setup.fixtures.find((f) => f.id === id);
+  if (!item) return;
+  current = { kind: kind === "ex" ? "example" : "fixture", item };
+  $("picker").value = value;
+  $("editor").value = item.text;
+  $("about").textContent = current.kind === "example" ? item.about : "A conformance case. The Fixture tab compares the result with expected.json.";
+  $("stream").checked = Boolean(item.stream || item.chunks);
+  if (item.stream) $("chunk-size").value = item.stream;
+  $("fixture-chunks").checked = true;
+  stopPlaying();
+  resetHost();
+  events = [];
+  result = null;
+  history.replaceState(null, "", "#" + value);
+  run();
+}
+
+// ---------- streaming playback ----------
+
+function stopPlaying() {
+  clearInterval(player);
+  player = null;
+  $("play").textContent = "▶ Play";
+}
+
+function play() {
+  if (player) return stopPlaying();
+  const count = views().length;
+  if (view >= count - 1) view = 0;
+  render();
+  $("play").textContent = "⏸ Pause";
+  const interval = Math.min(400, Math.max(40, 5000 / count));
+  player = setInterval(() => {
+    if (view >= views().length - 1) return stopPlaying();
+    view += 1;
+    render();
+  }, interval);
+}
+
+// ---------- start ----------
+
+async function start() {
+  setup = await (await fetch("api/setup")).json();
+  const picker = $("picker");
+  const examples = h("optgroup", { label: "Examples" }, setup.examples.map((e) => h("option", { value: "ex:" + e.id }, e.title)));
+  const areas = {};
+  for (const f of setup.fixtures) (areas[f.id.split("/")[0]] ||= []).push(f);
+  picker.append(examples, ...Object.entries(areas).map(([area, cases]) =>
+    h("optgroup", { label: `Fixtures: ${area}` }, cases.map((f) => h("option", { value: "fx:" + f.id }, f.id)))));
+
+  $("lib-root").textContent = setup.root;
+  const section = (title, items) => [h("h4", {}, title), h("dl", {}, items.map((i) => [h("dt", {}, i.signature), h("dd", {}, i.description)]))];
+  fill($("library"), ...section("Components", setup.components), ...section("Functions", setup.functions), ...section("Actions", setup.actions));
+  fill($("limits"), ...LIMIT_NAMES.flatMap((name) => [
+    h("label", { for: "limit-" + name }, h("code", {}, name)),
+    h("input", { type: "number", id: "limit-" + name, min: 1, value: setup.limits[name], onchange: () => schedule(0) }),
+  ]));
+
+  picker.addEventListener("change", () => load(picker.value));
+  $("editor").addEventListener("input", () => { stopPlaying(); schedule(); });
+  $("stream").addEventListener("change", () => { stopPlaying(); run(); });
+  $("chunk-size").addEventListener("change", () => { stopPlaying(); run(); });
+  $("fixture-chunks").addEventListener("change", () => { stopPlaying(); run(); });
+  $("frame").addEventListener("input", (e) => { stopPlaying(); view = Number(e.target.value); render(); });
+  $("play").addEventListener("click", play);
+  $("limits-reset").addEventListener("click", () => { for (const n of LIMIT_NAMES) $("limit-" + n).value = setup.limits[n]; run(); });
+  $("host-apply").addEventListener("click", applyHost);
+  $("host-reset").addEventListener("click", () => { resetHost(); run(); });
+  $("events-clear").addEventListener("click", () => { events = []; render(); });
+
+  const wanted = decodeURIComponent(location.hash.slice(1));
+  load(wanted && picker.querySelector(`option[value="${CSS.escape(wanted)}"]`) ? wanted : "ex:tour");
+}
+
+start().catch((error) => { fill($("status"), h("span", { class: "chip err" }, "could not load: " + error.message)); });
+</script>
+</body>
+</html>
