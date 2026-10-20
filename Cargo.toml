@@ -11,7 +11,7 @@ repository = "https://github.com/voxell-tech/openui-rs"
 
 [workspace.dependencies]
 # openui
-openui_lang = { version = "0.1.0", path = "crates/openui_lang" }
+openui = { version = "0.1.0", path = "crates/openui" }
 
 # other
 thiserror = "2"

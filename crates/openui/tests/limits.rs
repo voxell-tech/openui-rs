@@ -11,7 +11,7 @@ mod common;
 use std::time::{Duration, Instant};
 
 use common::library;
-use openui_lang::{
+use openui::{
     Code, ComponentDef, Document, FunctionDef, Inputs, Library,
     Limits, Param, Source, StreamParser, Type, Value, parse,
     parse_with_limits,

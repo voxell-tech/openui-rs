@@ -10,7 +10,7 @@
 //! cargo run --example stream
 //! ```
 
-use openui_lang::{
+use openui::{
     ActionStep, ComponentDef, Document, Element, Inputs, Library,
     LibraryError, Param, StreamParser, Type, Value,
 };

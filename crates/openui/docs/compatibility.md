@@ -1,6 +1,6 @@
 # OpenUI Lang compatibility
 
-`openui_lang` 0.1.0 is milestone 1 of the runtime: parsing, streaming,
+`openui` 0.1.0 is milestone 1 of the runtime: parsing, streaming,
 references, validation, evaluation into a renderer-neutral tree, and
 diagnostics. It is **not** a full OpenUI Lang 1.0 client. This report records
 what is supported, what is not, and where the crate knowingly differs from the
@@ -10,7 +10,7 @@ pinned reference implementation.
 
 | | |
 | --- | --- |
-| Language version | OpenUI Lang 1.0 (`openui_lang::SPEC_VERSION`) |
+| Language version | OpenUI Lang 1.0 (`openui::SPEC_VERSION`) |
 | Specification | [`spec/language.md`] and [`spec/prompt.md`] at thesysdev/openui `8d9c4c3b108a7b5352192a6a9d7327bdf7ea19b5` |
 | Oracle | `spec/fixtures/1.0/` at the same commit, copied unchanged into [`tests/fixtures/openui-1.0/`](../tests/fixtures/openui-1.0/PROVENANCE.md) |
 | Reference implementation | `packages/lang-core` at the same commit, read as a development aid only. Nothing in the crate or its tests runs JavaScript. |

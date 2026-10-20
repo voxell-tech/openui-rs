@@ -1,7 +1,7 @@
 //! What a host relies on beyond the fixtures: inputs, deferred action
 //! values, tool requests, and runtime diagnostics.
 
-use openui_lang::{
+use openui::{
     ActionDef, ActionStep, Code, ComponentDef, Document, FunctionDef,
     Inputs, Library, Limits, Param, RunKind, Severity, Source, Type,
     Value, parse, parse_with_limits,

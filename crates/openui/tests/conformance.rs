@@ -9,7 +9,7 @@ mod common;
 use common::{
     Case, canonical, cases, compare, fixture_spec, library,
 };
-use openui_lang::{StreamParser, parse};
+use openui::{StreamParser, parse};
 
 /// Cases this milestone does not implement, by id prefix, with the
 /// reason.
@@ -96,7 +96,7 @@ fn conformance_fixtures() {
 
 /// Runs one program case. Streaming cases must match both pushed
 /// chunk by chunk and as a batch parse of the joined chunks.
-fn run(case: &Case, library: &openui_lang::Library) -> Vec<String> {
+fn run(case: &Case, library: &openui::Library) -> Vec<String> {
     let expected =
         case.expected().expect("program cases have expected.json");
     match case.chunks() {

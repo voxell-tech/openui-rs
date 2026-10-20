@@ -1,13 +1,13 @@
-# OpenUI Lang
+# OpenUI
 
 [![License](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/voxell-tech/openui-rs#license)
-[![Crates.io](https://img.shields.io/crates/v/openui_lang.svg)](https://crates.io/crates/openui_lang)
-[![Downloads](https://img.shields.io/crates/d/openui_lang.svg)](https://crates.io/crates/openui_lang)
-[![Docs](https://docs.rs/openui_lang/badge.svg)](https://docs.rs/openui_lang/latest/openui_lang/)
+[![Crates.io](https://img.shields.io/crates/v/openui.svg)](https://crates.io/crates/openui)
+[![Downloads](https://img.shields.io/crates/d/openui.svg)](https://crates.io/crates/openui)
+[![Docs](https://docs.rs/openui/badge.svg)](https://docs.rs/openui/latest/openui/)
 [![CI](https://github.com/voxell-tech/openui-rs/workflows/CI/badge.svg)](https://github.com/voxell-tech/openui-rs/actions)
 [![Discord](https://img.shields.io/discord/442334985471655946.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/Mhnyp6VYEQ)
 
-**`openui_lang`** is a renderer-neutral runtime for [OpenUI Lang]
+**`openui`** is a renderer-neutral runtime for [OpenUI Lang]
 1.0. It parses a program, in one go or as the text streams, checks
 it against a library of components you define, and evaluates it
 into a tree that any renderer can draw, with diagnostics. It has no
@@ -29,7 +29,7 @@ the support matrix and the known divergences.
 Define the components a model may use, in argument order:
 
 ```rust
-use openui_lang::{ComponentDef, Inputs, Library, Param, StreamParser, Type};
+use openui::{ComponentDef, Inputs, Library, Param, StreamParser, Type};
 
 let library = Library::builder()
     .component(
@@ -53,7 +53,7 @@ for chunk in ["root = Stack([tit", "le])\ntitle = Text(\"Hi\", \"head", "ing\")"
     // Every intermediate document renders what has arrived so far.
     let _ = document.evaluate(&Inputs::new()).root();
 }
-let document = parser.finish(); // the same result as `openui_lang::parse`
+let document = parser.finish(); // the same result as `openui::parse`
 assert!(document.diagnostics().is_empty());
 ```
 

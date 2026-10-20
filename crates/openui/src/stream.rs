@@ -43,7 +43,7 @@ pub fn parse_with_limits(
 /// new stream.
 ///
 /// ```
-/// use openui_lang::{
+/// use openui::{
 ///     ComponentDef, Inputs, Library, Param, StreamParser, Type,
 /// };
 ///

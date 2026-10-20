@@ -8,7 +8,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use openui_lang::{
+use openui::{
     ActionDef, ActionStep, ComponentDef, Document, Element,
     FunctionDef, Inputs, Library, Param, Type, Value,
 };
@@ -183,9 +183,7 @@ fn load_library(spec: &Json) -> Library {
 }
 
 /// `@Upper(text)`: the text in upper case.
-fn upper(
-    args: &openui_lang::Map,
-) -> Result<Value, openui_lang::FunctionError> {
+fn upper(args: &openui::Map) -> Result<Value, openui::FunctionError> {
     let text = args
         .get("text")
         .map(Value::to_js_string)

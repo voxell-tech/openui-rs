@@ -1,5 +1,5 @@
 [package]
-name = "openui_lang"
+name = "openui"
 description = "A renderer-neutral runtime for OpenUI Lang."
 keywords = ["openui", "ui", "llm", "parser", "streaming"]
 categories = ["parser-implementations", "gui"]

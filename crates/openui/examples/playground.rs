@@ -27,7 +27,7 @@ use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
-use openui_lang::{
+use openui::{
     ActionStep, Diagnostic, Document, Element, Inputs, Library,
     Limits, StreamParser, Value, parse_with_limits,
 };

@@ -5,7 +5,7 @@
 mod common;
 
 use common::{canonical, cases, library};
-use openui_lang::{Document, Inputs, Library, StreamParser, parse};
+use openui::{Document, Inputs, Library, StreamParser, parse};
 
 /// Texts beyond the fixtures that stress chunk boundaries: comment
 /// markers, fences and escapes split across chunks, ternary

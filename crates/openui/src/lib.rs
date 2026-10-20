@@ -9,9 +9,7 @@
 //! [`ToolRequest`]s for the host to carry out.
 //!
 //! ```
-//! use openui_lang::{
-//!     ComponentDef, Inputs, Library, Param, Type, parse,
-//! };
+//! use openui::{ComponentDef, Inputs, Library, Param, Type, parse};
 //!
 //! let library = Library::builder()
 //!     .component(
@@ -49,7 +47,7 @@
 //!         .as_str(),
 //!     Some("Hi Ada")
 //! );
-//! # Ok::<(), openui_lang::LibraryError>(())
+//! # Ok::<(), openui::LibraryError>(())
 //! ```
 //!
 //! Model output is untrusted. Parsing and evaluation are bounded by

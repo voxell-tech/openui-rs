@@ -1,9 +1,9 @@
 # OpenUI-rs
 
 [![License](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](https://github.com/voxell-tech/openui-rs#license)
-[![Crates.io](https://img.shields.io/crates/v/openui_lang.svg)](https://crates.io/crates/openui_lang)
-[![Downloads](https://img.shields.io/crates/d/openui_lang.svg)](https://crates.io/crates/openui_lang)
-[![Docs](https://docs.rs/openui_lang/badge.svg)](https://docs.rs/openui_lang/latest/openui_lang/)
+[![Crates.io](https://img.shields.io/crates/v/openui.svg)](https://crates.io/crates/openui)
+[![Downloads](https://img.shields.io/crates/d/openui.svg)](https://crates.io/crates/openui)
+[![Docs](https://docs.rs/openui/badge.svg)](https://docs.rs/openui/latest/openui/)
 [![CI](https://github.com/voxell-tech/openui-rs/workflows/CI/badge.svg)](https://github.com/voxell-tech/openui-rs/actions)
 [![Discord](https://img.shields.io/discord/442334985471655946.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/Mhnyp6VYEQ)
 
@@ -31,7 +31,7 @@ the authors of OpenUI.
 - No UI, network, browser or model dependency.
 
 **Status: milestone 1, not a full 1.0 client.** See the
-[compatibility report](crates/openui_lang/docs/compatibility.md).
+[compatibility report](crates/openui/docs/compatibility.md).
 
 ## Example
 
@@ -48,7 +48,7 @@ let document = parser.finish();
 
 ## Where Next
 
-- [`openui_lang`](crates/openui_lang): the runtime, with the full
+- [`openui`](crates/openui): the runtime, with the full
   API walkthrough, examples and a local playground.
 
 ## Join the community!
@@ -70,5 +70,5 @@ approach is the de-facto standard in the Rust ecosystem and there are
 include both.
 
 The conformance fixtures vendored under
-[`crates/openui_lang/tests/fixtures/openui-1.0`](crates/openui_lang/tests/fixtures/openui-1.0/PROVENANCE.md)
+[`crates/openui/tests/fixtures/openui-1.0`](crates/openui/tests/fixtures/openui-1.0/PROVENANCE.md)
 are MIT, © Thesys Inc.
