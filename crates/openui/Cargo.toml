@@ -1,0 +1,20 @@
+[package]
+name = "openui"
+description = "A renderer-neutral runtime for OpenUI Lang."
+keywords = ["openui", "ui", "llm", "parser", "streaming"]
+categories = ["parser-implementations", "gui"]
+readme = "./README.md"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+thiserror = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
