@@ -70,5 +70,5 @@ approach is the de-facto standard in the Rust ecosystem and there are
 include both.
 
 The conformance fixtures vendored under
-[`crates/openui/tests/fixtures/openui-1.0`](crates/openui/tests/fixtures/openui-1.0/PROVENANCE.md)
+[`crates/openui/tests/fixtures/openui_1.0`](crates/openui/tests/fixtures/openui_1.0/PROVENANCE.md)
 are MIT, © Thesys Inc.

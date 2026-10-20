@@ -1,5 +1,5 @@
 //! The OpenUI Lang 1.0 conformance fixtures (spec Appendix B), with
-//! the comparison rules of `tests/fixtures/openui-1.0/README.md`.
+//! the comparison rules of `tests/fixtures/openui_1.0/README.md`.
 //!
 //! Every Level 1 program case runs, except the ones listed in
 //! [`DEFERRED`]. Run with `--nocapture` to print the per-case report.

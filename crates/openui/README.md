@@ -92,5 +92,5 @@ host would. A fixture case is compared with its `expected.json`. It
 listens on 127.0.0.1 only and calls no model or tool.
 
 Requires Rust 1.85 or later. The fixtures are vendored under
-[`tests/fixtures/openui-1.0`](tests/fixtures/openui-1.0/PROVENANCE.md),
+[`tests/fixtures/openui_1.0`](tests/fixtures/openui_1.0/PROVENANCE.md),
 pinned to thesysdev/openui `8d9c4c3`, so nothing needs the network.

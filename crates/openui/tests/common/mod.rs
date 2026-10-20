@@ -16,7 +16,7 @@ use serde_json::{Map as JsonMap, Value as Json, json};
 
 pub fn fixtures_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests/fixtures/openui-1.0")
+        .join("tests/fixtures/openui_1.0")
 }
 
 /// A fixture case: its id, such as
