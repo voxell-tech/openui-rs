@@ -1,13 +1,21 @@
 [workspace]
-resolver = "3"
-members = ["crates/openui-lang"]
+resolver = "2"
+members = ["crates/*"]
 
 [workspace.package]
+version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
-license = "MIT"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/voxell-tech/openui-rs"
-publish = false
+
+[workspace.dependencies]
+# openui
+openui_lang = { version = "0.1.0", path = "crates/openui_lang" }
+
+# other
+thiserror = "2"
+serde_json = { version = "1", features = ["preserve_order"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -15,3 +23,4 @@ missing_docs = "warn"
 
 [workspace.lints.clippy]
 all = { level = "warn", priority = -1 }
+redundant_type_annotations = "warn"
